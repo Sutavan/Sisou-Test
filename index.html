@@ -1,0 +1,170 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>【思想】タイプ診断</title>
+  <style>
+    body { font-family: sans-serif; padding: 2em; max-width: 720px; margin: auto; }
+    h1, h2 { color: #333; }
+    .question { margin-bottom: 1em; }
+    select { margin-left: 1em; }
+    .result { margin-top: 2em; padding: 1em; background: #f2f2f2; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>【思想】タイプ診断</h1>
+  <p>各設問に「YES（+2）」「ややYES（+1）」「ややNO（-1）」「NO（-2）」で答えてください。</p>
+  <form id="quizForm">
+    <div id="questions"></div>
+    <button type="submit">診断する</button>
+  </form>
+  <div id="result" class="result" style="display:none;"></div>
+
+<script>
+const axes = {
+  "W": {
+    label: "世界観",
+    questions: [
+      "この世界はただの舞台装置で、中身は空っぽだと思う。",
+      "“意味”という言葉を使う人間には裏があると感じてしまう。",
+      "意味がなくても、意味が“あるフリ”をして生きた方が楽だと思う。",
+      "「世界に意味があるかどうか」は、自分で決めていいと思っている。",
+      "空虚を前提に、それでも何かを選びたいと思うことがある。",
+      "自分の行動に意味があると感じられるとき、生きやすくなる。",
+      "世界の出来事には、たとえ分からなくても“何かしらの理由”があるはずだと思う。",
+      "神や宇宙など、超越的なものの意志を感じる瞬間がある。",
+      "世界にはもともと意味や目的が備わっていると信じている。",
+      "私たちは与えられた意味を果たすために存在している。",
+      "人生の中に“役割”を感じることが多い。",
+      "世界には乗り越えるべき道筋のようなものがあると思う。"
+    ]
+  },
+  "C": {
+    label: "信条",
+    questions: [
+      "気持ちよさや快楽があれば、正しさなんてどうでもいいと思うことがある。",
+      "正しさよりも、自由さや楽しさを優先したい。",
+      "自分の中の快を指針にして生きることに、誇りを持っている。",
+      "生き方に“意味”や“正しさ”があってもなくても、自分で選んだならそれでいい。",
+      "目的や信念があるほうが、自分の行動に軸が持てる。",
+      "自分の行動に「意図」があるとき、納得しやすい。",
+      "人生には一定の「目指すべき方向」があると思う。",
+      "何かを信じて、それに従って生きることが人間の強さだと思う。",
+      "理念を持っている人に憧れることがある。",
+      "ルールや責任感がない生き方は、結局誰かを傷つけると思う。",
+      "自分の行動は、常に正しくあるべきだと意識している。",
+      "正義や道徳がないと、人は簡単に悪に流れると思う。"
+    ]
+  },
+  "A": {
+    label: "態度",
+    questions: [
+      "理想や感情の話をされると、まず冷めた目で見てしまう。",
+      "熱さや誠実さより、「現実的に正しい」方が信用できる。",
+      "いちいち感情を言葉にしなくていいと思っている。",
+      "信じたいけど信じきれないものが多く、自分の中で揺れている。",
+      "美しさや共感に心が動く自分を否定したくない。",
+      "言葉よりも、誠実な態度や優しさに惹かれる。",
+      "感情的なものに突き動かされて行動することがある。",
+      "まずは「これって本当か？」と疑ってしまうのが癖だ。",
+      "自分が信じてることでも、すぐに茶化したくなる。",
+      "「それお前が言うなよ」って言われたい時がある。",
+      "正義っぽい空気を見ると、崩したくなる衝動がある。",
+      "共感の強要や正論が飛び交う場では、無言で離れたくなる。"
+    ]
+  }
+};
+
+const typeNames = {
+  W: {
+    "1": "虚無主義",
+    "1.5": "構築的ニヒリズム",
+    "2": "実存主義",
+    "2.5": "現実対応主義",
+    "3": "意味志向主義",
+    "3.5": "信仰的意味論",
+    "4": "宿命論（テレオロジー）"
+  },
+  C: {
+    "1": "無目的的自由主義",
+    "1.5": "快楽的自由主義",
+    "2": "快楽主義",
+    "2.5": "快楽×目的両立型",
+    "3": "目的論",
+    "3.5": "理念的自由主義",
+    "4": "規範主義"
+  },
+  A: {
+    "1": "実務主義者（リアリスト）",
+    "1.5": "知覚的リアリスト",
+    "2": "ロマンチスト",
+    "2.5": "共感系懐疑主義者",
+    "3": "懐疑主義者",
+    "3.5": "破壊的アジテーター",
+    "4": "反体制・皮肉主義者"
+  }
+};
+
+function scoreToType(score) {
+  if (score <= -18) return "1";
+  if (score <= -11) return "1.5";
+  if (score <= -4) return "2";
+  if (score <= 3) return "2.5";
+  if (score <= 10) return "3";
+  if (score <= 17) return "3.5";
+  return "4";
+}
+
+const form = document.getElementById("quizForm");
+const questionsDiv = document.getElementById("questions");
+const resultDiv = document.getElementById("result");
+
+let id = 0;
+for (const axis in axes) {
+  const section = document.createElement("h2");
+  section.textContent = `【${axis}軸】${axes[axis].label}`;
+  questionsDiv.appendChild(section);
+
+  axes[axis].questions.forEach(q => {
+    const div = document.createElement("div");
+    div.className = "question";
+    const label = document.createElement("label");
+    label.textContent = q;
+    const select = document.createElement("select");
+    select.name = `${axis}_${id++}`;
+    [-2, -1, 1, 2].forEach(v => {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v;
+      select.appendChild(opt);
+    });
+    div.appendChild(label);
+    div.appendChild(select);
+    questionsDiv.appendChild(div);
+  });
+}
+
+form.onsubmit = function(e) {
+  e.preventDefault();
+  let totals = { W: 0, C: 0, A: 0 };
+  const data = new FormData(form);
+  for (const [key, val] of data.entries()) {
+    const axis = key[0];
+    totals[axis] += parseInt(val);
+  }
+  const Wt = scoreToType(totals.W);
+  const Ct = scoreToType(totals.C);
+  const At = scoreToType(totals.A);
+  const resultText = `あなたの思想タイプは：W${Wt} - C${Ct} - A${At}
+` +
+    `（${typeNames.W[Wt]} × ${typeNames.C[Ct]} × ${typeNames.A[At]}）
+
+詳しく知りたかったらGPTにきいてね。`;
+  resultDiv.textContent = resultText;
+  resultDiv.style.display = "block";
+};
+</script>
+</body>
+</html>
